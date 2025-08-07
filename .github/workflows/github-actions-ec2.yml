@@ -3,7 +3,7 @@ name: Push-to-EC2
 on:
   push:
     branches:
-      - main
+      - main  # Trigger on push to the main branch
 
 jobs:
   deploy:
@@ -14,16 +14,16 @@ jobs:
       - name: Checkout the files
         uses: actions/checkout@v2
 
-      - name: Deploy to Server 1
+      - name: Deploy to Server 1 using SSH
         uses: easingthemes/ssh-deploy@main
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-          remote-user: ${{ secrets.USERNAME }}
-          server-ip: ${{ secrets.HOST_DNS }}
-          remote-path: ${{ secrets.TARGET_DIR }}
-          local-path: .   # or whatever folder you want to deploy
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST_DNS }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: ${{ secrets.TARGET_DIR }}
+          SOURCE: .  # This assumes your static site files are in the root directory
 
-      - name: Executing remote ssh commands using ssh key
+      - name: Execute remote commands on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_DNS }}
@@ -34,4 +34,4 @@ jobs:
             sudo apt-get install -y apache2
             sudo systemctl start apache2
             sudo systemctl enable apache2
-            sudo mv ~/$(ls ~ | head -n 1) /var/www/html/
+            sudo cp -r ~/$(ls ~ | head -n 1) /var/www/html/
